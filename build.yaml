@@ -1,0 +1,14 @@
+name: "DejaVu"
+guid: "7F12E12E-BC2D-4412-A5EC-543CC1F86D15"
+version: "1.0.0.0"
+targetAbi: "10.9.0.0"
+framework: "net8.0"
+overview: "Automatic subtitles when skipping back"
+description: |
+  Automatically enables subtitles when skipping back in videos, disabling them once the original point is reached.
+category: "General"
+owner: "ImTheSquid"
+artifacts:
+  - "DejaVu.dll"
+changelog: |
+  1.0.0.0: Initial Release
