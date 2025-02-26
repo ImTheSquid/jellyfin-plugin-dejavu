@@ -7,3 +7,9 @@
 
 This plugin automatically enables subtitles when you skip back in a video until the point where you initially were.
 It uses an automatic selection strategy, going through previously-used subtitles, the default for the video, and finally the user's preferred language.
+
+# Installation
+Use the following manifest:
+```
+https://raw.githubusercontent.com/ImTheSquid/jellyfin-plugin-dejavu/manifest-release/manifest.json
+```
