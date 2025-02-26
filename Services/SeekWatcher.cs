@@ -130,17 +130,6 @@ public class SeekWatcher(
                 }
             }
 
-            // If subtitles are supposed to be enabled but they still aren't for some reason then keep asking for them
-            // if (session.PlayState.SubtitleStreamIndex == -1 && _activeSubtitles.ContainsKey(session.Id))
-            // {
-            //     _logger.LogWarning($"Subtitles are supposed to be enabled but they still aren't for {session.Id}");
-            //     _sessionManager.SendGeneralCommand(session.Id, session.Id, new GeneralCommand
-            //     {
-            //         Name = GeneralCommandType.SetSubtitleStreamIndex,
-            //         Arguments = { { "Index", "0" } }
-            //     }, CancellationToken.None);
-            // }
-
             watchedSession!.Tick = session.PlayState.PositionTicks;
             if (session.PlayState.SubtitleStreamIndex != -1)
             {
