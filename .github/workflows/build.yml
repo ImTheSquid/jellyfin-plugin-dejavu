@@ -25,13 +25,13 @@ jobs:
           dotnet-version: "${{ inputs.dotnet-version }}"
 
       - name: Build Jellyfin Plugin
-        uses: oddstr13/jellyfin-plugin-repository-manager@b9e92867a6aa279d611a5ea80cf61f6358838c39
+        uses: oddstr13/jellyfin-plugin-repository-manager@v1
         id: jprm
         with:
           dotnet-target: "${{ inputs.dotnet-target }}"
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # tag=v3
+        uses: actions/upload-artifact@v4
         with:
           name: build-artifact
           retention-days: 30
