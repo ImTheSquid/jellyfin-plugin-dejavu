@@ -2,7 +2,7 @@
 
 <p align="center">
 
-<img alt="Logo" src="https://raw.githubusercontent.com/ImTheSquid/jellyfin-plugin-dejavu/main/img/logo.png"/>
+<img alt="Logo" src="https://raw.githubusercontent.com/ImTheSquid/jellyfin-plugin-dejavu/main/img/logo.png" style="max-width: 50%;"/>
 </p>
 
 This plugin automatically enables subtitles when you skip back in a video until the point where you initially were.
