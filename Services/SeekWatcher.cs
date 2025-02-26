@@ -186,6 +186,9 @@ public class SeekWatcher(
         _playbackTimer.AutoReset = true;
         _playbackTimer.Start();
 
+        DejaVuPlugin.Instance!.ConfigurationChanged += ConfigUpdated;
+        ConfigUpdated(null, DejaVuPlugin.Instance!.Configuration);
+
         return Task.CompletedTask;
     }
 
@@ -193,6 +196,8 @@ public class SeekWatcher(
     {
         _playbackTimer.Stop();
         _playbackTimer.Elapsed -= PlaybackTimerElapsed;
+
+        DejaVuPlugin.Instance!.ConfigurationChanged -= ConfigUpdated;
 
         return Task.CompletedTask;
     }
