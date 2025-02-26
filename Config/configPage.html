@@ -14,7 +14,7 @@
             <div data-role="content">
                 <div class="content-primary">
                     <form id="TemplateConfigForm">
-                        <div class="selectContainer">
+                        <!-- <div class="selectContainer">
                             <label class="selectLabel" for="Options"
                                 >Several Options</label
                             >
@@ -34,23 +34,27 @@
                                     Another Option
                                 </option>
                             </select>
-                        </div>
+                        </div> -->
                         <div class="inputContainer">
                             <label
                                 class="inputLabel inputLabelUnfocused"
-                                for="AnInteger"
-                                >An Integer</label
+                                for="MaxSkipSecs"
+                                >Maximum Skip Time</label
                             >
                             <input
-                                id="AnInteger"
-                                name="AnInteger"
+                                id="MaxSkipSecs"
+                                name="MaxSkipSecs"
                                 type="number"
                                 is="emby-input"
-                                min="0"
+                                min="-1"
                             />
-                            <div class="fieldDescription">A Description</div>
+                            <div class="fieldDescription">
+                                The maximum backwards skip time in seconds that
+                                will activate DejaVu. A value of -1 will always
+                                activate DejaVu.
+                            </div>
                         </div>
-                        <div
+                        <!-- <div
                             class="checkboxContainer checkboxContainer-withDescription"
                         >
                             <label class="emby-checkbox-label">
@@ -78,7 +82,7 @@
                             <div class="fieldDescription">
                                 Another Description
                             </div>
-                        </div>
+                            </div> -->
                         <div>
                             <button
                                 is="emby-button"
@@ -103,15 +107,15 @@
                         ApiClient.getPluginConfiguration(
                             TemplateConfig.pluginUniqueId,
                         ).then(function (config) {
-                            document.querySelector("#Options").value =
-                                config.Options;
-                            document.querySelector("#AnInteger").value =
-                                config.AnInteger;
-                            document.querySelector(
-                                "#TrueFalseSetting",
-                            ).checked = config.TrueFalseSetting;
-                            document.querySelector("#AString").value =
-                                config.AString;
+                            // document.querySelector("#Options").value =
+                            //     config.Options;
+                            document.querySelector("#MaxSkipSecs").value =
+                                config.MaxSkipSecs;
+                            // document.querySelector(
+                            //     "#TrueFalseSetting",
+                            // ).checked = config.TrueFalseSetting;
+                            // document.querySelector("#AString").value =
+                            //     config.AString;
                             Dashboard.hideLoadingMsg();
                         });
                     });
@@ -123,16 +127,16 @@
                         ApiClient.getPluginConfiguration(
                             TemplateConfig.pluginUniqueId,
                         ).then(function (config) {
-                            config.Options =
-                                document.querySelector("#Options").value;
-                            config.AnInteger =
-                                document.querySelector("#AnInteger").value;
-                            config.TrueFalseSetting =
-                                document.querySelector(
-                                    "#TrueFalseSetting",
-                                ).checked;
-                            config.AString =
-                                document.querySelector("#AString").value;
+                            // config.Options =
+                            //     document.querySelector("#Options").value;
+                            config.MaxSkipSecs =
+                                document.querySelector("#MaxSkipSecs").value;
+                            // config.TrueFalseSetting =
+                            //     document.querySelector(
+                            //         "#TrueFalseSetting",
+                            //     ).checked;
+                            // config.AString =
+                            //     document.querySelector("#AString").value;
                             ApiClient.updatePluginConfiguration(
                                 TemplateConfig.pluginUniqueId,
                                 config,

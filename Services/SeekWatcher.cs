@@ -16,13 +16,14 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using MediaBrowser.Common.Extensions;
 using MediaBrowser.Controller.Session;
+using DejaVu.Config;
 
 namespace DejaVu.Services;
 
 class ActiveSubtitle
 {
     public long Index { get; set; }
-    public long Tick { get; set; }
+    public long EndTick { get; set; }
 }
 
 class SessionData
@@ -32,23 +33,26 @@ class SessionData
 }
 
 public class SeekWatcher(
-IUserDataManager userDataManager,
     ISessionManager sessionManager,
     ILogger<SeekWatcher> logger,
     IUserManager userManager
 ) : IHostedService, IDisposable
 {
-    private readonly IUserDataManager _userDataManager = userDataManager;
     private readonly ISessionManager _sessionManager = sessionManager;
     private readonly IUserManager _userManager = userManager;
     private readonly ILogger<SeekWatcher> _logger = logger;
     private readonly System.Timers.Timer _playbackTimer = new(1000);
     // Contains the session ID and the timestamp at which the subtitles will be disabled
     private readonly ConcurrentDictionary<string, ActiveSubtitle> _activeSubtitles = new();
-    private PluginConfiguration _config = new();
+    private PluginConfig _config = new();
     // Tracking dictionary to see when a user skips back
     // When they do add to `_activeSubtitles`
     private readonly ConcurrentDictionary<string, SessionData> _watchedSessions = new();
+
+    private void ConfigUpdated(object? sender, BasePluginConfiguration e)
+    {
+        _config = (PluginConfig)e;
+    }
 
     private int? FindSubtitleStreamWithPredicate(IEnumerable<MediaStream> streams, Func<MediaStream, bool> predicate)
     {
@@ -102,7 +106,8 @@ IUserDataManager userDataManager,
 
             // If a session skipped back check for subtitles and enable them if necessary
             var watchedSession = _watchedSessions.GetOrAdd(session.Id, (_) => new SessionData { LastSubtitleIndex = session.PlayState.SubtitleStreamIndex, Tick = session.PlayState.PositionTicks });
-            if (session.PlayState.PositionTicks is not null && session.PlayState.PositionTicks < watchedSession.Tick && session.PlayState.SubtitleStreamIndex == -1)
+            var initialDifference = watchedSession.Tick - session.PlayState.PositionTicks;
+            if (session.PlayState.PositionTicks is not null && session.PlayState.PositionTicks < watchedSession.Tick && session.PlayState.SubtitleStreamIndex == -1 && !_activeSubtitles.ContainsKey(session.Id) && (initialDifference / TimeSpan.TicksPerSecond < _config.MaxSkipSecs || _config.MaxSkipSecs == -1))
             {
                 // Since subtitles are not enabled, enable them
                 var index = TryFindSubtitleStream(session);
@@ -111,7 +116,7 @@ IUserDataManager userDataManager,
                 {
                     _logger.LogDebug($"Found subtitles for {session.Id} on track {index}, enabling until {watchedSession.Tick}");
 
-                    _activeSubtitles.TryAdd(session.Id, new ActiveSubtitle { Tick = watchedSession.Tick.Value, Index = index });
+                    _activeSubtitles.TryAdd(session.Id, new ActiveSubtitle { EndTick = watchedSession.Tick.Value, Index = index });
 
                     _sessionManager.SendGeneralCommand(session.Id, session.Id, new GeneralCommand
                     {
@@ -125,6 +130,17 @@ IUserDataManager userDataManager,
                 }
             }
 
+            // If subtitles are supposed to be enabled but they still aren't for some reason then keep asking for them
+            // if (session.PlayState.SubtitleStreamIndex == -1 && _activeSubtitles.ContainsKey(session.Id))
+            // {
+            //     _logger.LogWarning($"Subtitles are supposed to be enabled but they still aren't for {session.Id}");
+            //     _sessionManager.SendGeneralCommand(session.Id, session.Id, new GeneralCommand
+            //     {
+            //         Name = GeneralCommandType.SetSubtitleStreamIndex,
+            //         Arguments = { { "Index", "0" } }
+            //     }, CancellationToken.None);
+            // }
+
             watchedSession!.Tick = session.PlayState.PositionTicks;
             if (session.PlayState.SubtitleStreamIndex != -1)
             {
@@ -133,14 +149,18 @@ IUserDataManager userDataManager,
 
             if (_activeSubtitles.TryGetValue(session.Id, out var activeSubtitle))
             {
-                if (activeSubtitle.Tick <= session.PlayState.PositionTicks)
+                // If the DejaVu period has ended or the user went too far back
+                // This difference will be negative if the user passed the DejaVu period
+                // It will only be considered if `MaxSkipSeconds` is not -1
+                var difference = activeSubtitle.EndTick - session.PlayState.PositionTicks;
+                if (activeSubtitle.EndTick <= session.PlayState.PositionTicks || (difference / TimeSpan.TicksPerSecond > _config.MaxSkipSecs && _config.MaxSkipSecs != -1))
                 {
                     _activeSubtitles.TryRemove(session.Id, out _);
 
                     // If the user changed subtitles between DejaVu turning them on and the off period being hit then don't take any action
-                    if (session.PlayState.SubtitleStreamIndex != activeSubtitle.Index)
+                    if (session.PlayState.SubtitleStreamIndex != activeSubtitle.Index && session.PlayState.SubtitleStreamIndex != -1)
                     {
-                        _logger.LogDebug($"User changed subtitles during DejaVu period for session {session.Id} (SSI {session.PlayState.SubtitleStreamIndex} != {activeSubtitle.Index}), skipping");
+                        _logger.LogDebug($"User changed to different subtitles during DejaVu period for session {session.Id} (SSI {session.PlayState.SubtitleStreamIndex} != {activeSubtitle.Index}), skipping");
                         continue;
                     }
 

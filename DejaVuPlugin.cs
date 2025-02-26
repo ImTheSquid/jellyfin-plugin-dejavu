@@ -2,10 +2,11 @@ using MediaBrowser.Common.Configuration;
 using MediaBrowser.Common.Plugins;
 using MediaBrowser.Model.Plugins;
 using MediaBrowser.Model.Serialization;
+using DejaVu.Config;
 
 namespace DejaVu;
 
-public class DejaVuPlugin : BasePlugin<PluginConfiguration>, IPlugin, IHasWebPages
+public class DejaVuPlugin : BasePlugin<PluginConfig>, IPlugin, IHasWebPages
 {
     public DejaVuPlugin(IApplicationPaths applicationPaths, IXmlSerializer xmlSerializer)
         : base(applicationPaths, xmlSerializer)
